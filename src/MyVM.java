@@ -24,8 +24,15 @@ public class MyVM {
     public static final int STORE = 31;
     public static final int LOAD = 32;
 
+    //Comparison Instructions OPCodes
+    public static final int EQ = 41;
+    public static final int GT = 42;
+    public static final int LT = 43;
+    public static final int GTE = 44;
+    public static final int LTE = 45;
 
-    private int[] memory = new int[256];
+
+    private final int[] memory = new int[256];
     private final Stack<Integer> stack; //stack as database for instructions;
     private int ip; //instruction pointer
 
@@ -172,6 +179,46 @@ public class MyVM {
                     stack.push(memory[address]);
                     break;
 
+                case EQ:
+                    if(stack.size()<2)
+                        throw new RuntimeException("Stack underflow at EQ");
+                    b = stack.pop();
+                    a = stack.pop();
+                    stack.push(a==b?1:0);
+                    break;
+
+                case GT:
+                    if(stack.size()<2)
+                        throw new RuntimeException("Stack Underflow at GT");
+                    b = stack.pop();
+                    a = stack.pop();
+                    stack.push(a>b?1:0);
+                    break;
+
+                case LT:
+                    if(stack.size()<2)
+                        throw new RuntimeException("Stack Underflow at LT");
+                    b = stack.pop();
+                    a = stack.pop();
+                    stack.push(a<b?1:0);
+                    break;
+
+                case GTE:
+                    if(stack.size()<2)
+                        throw new RuntimeException("Stack Underflow at GTE");
+                    b = stack.pop();
+                    a = stack.pop();
+                    stack.push(a>=b?1:0);
+                    break;
+
+                case LTE:
+                    if(stack.size()<2)
+                        throw new RuntimeException("Stack Underflow at LTE");
+                    b = stack.pop();
+                    a = stack.pop();
+                    stack.push(a<=b?1:0);
+                    break;
+
                 default:
                     throw new RuntimeException("Unknown Instruction " + instruction);
             }
@@ -182,9 +229,11 @@ public class MyVM {
     /* test -- program -- biatch;*/
     public static void main(String[] args) {
         int[] program = {
-                PUSH, 10,
-                PUSH, 3,
-                MOD,
+                PUSH, 2,
+                PUSH, 8,
+                LTE,
+                JZ ,10,
+                PUSH, 999,
                 PRINT,
                 HALT
         };
