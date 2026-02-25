@@ -229,13 +229,7 @@ public class MyVM {
     /* test -- program -- biatch;*/
     public static void main(String[] args) {
         int[] program = {
-                PUSH, 2,
-                PUSH, 8,
-                LTE,
-                JZ ,10,
-                PUSH, 999,
-                PRINT,
-                HALT
+                //Add your OPCodes here for testing
         };
         MyVM vm = new MyVM();
         vm.execute(program);
