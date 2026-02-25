@@ -2,7 +2,7 @@ import java.util.*;
 
 public class MyVM {
         //----OPCODES----
-        // should add MOD(modulus) and NEG(negates the top value)
+        //should add JMP, JZ, JNZ;
         public static final int HALT = 0;
         public static final int PUSH = 1;
         public static final int ADD = 2;
@@ -15,7 +15,14 @@ public class MyVM {
         public static final int MOD = 9;
         public static final int NEG = 10;
 
-        private Stack<Integer> stack; //stack as database for instructions;
+
+        //Jump OP codes
+        public static final int JMP = 20;
+        public static final int JZ = 21;
+        public static final int JNZ = 22;
+
+
+        private final Stack<Integer> stack; //stack as database for instructions;
         private int ip; //instruction pointer
 
     public MyVM(){
@@ -104,14 +111,46 @@ public class MyVM {
                     stack.push(-a);
                     break;
 
+                case JMP:
+                    int target = program[ip];
+                    if(target<0 || target>= program.length)
+                        throw new RuntimeException("Invalid jump exception " + target);
+                    ip = target;
+                    break;
+
+                case JZ:
+                    if(stack.isEmpty())
+                        throw new RuntimeException("Stack underflow on JZ");
+                    target = program[ip];
+                    value = stack.pop();
+                    if(value==0){
+                        if(target<0 || target>= program.length)
+                            throw new RuntimeException("Invalid Jump target " + target);
+                        ip = target;
+                    }
+                    break;
+
+                case JNZ:
+                    if(stack.isEmpty())
+                        throw new RuntimeException("Stack underflow on JNZ");
+                    target = program[ip];
+                    value = stack.pop();
+                    if(value!=0){
+                        if(target<0 || target >= program.length)
+                            throw new RuntimeException("Invalid Jump target " + target);
+                        ip = target;
+                    }
+                    break;
+
 
                 default:
                     throw new RuntimeException("Unknown Instruction "+ instruction);
             }
         }
     }
+}
 
-    // test -- program -- biatch;
+    /* test -- program -- biatch;
     public static void main(String[] args){
         int[] program = {
                 PUSH, 5,
@@ -122,4 +161,4 @@ public class MyVM {
         MyVM vm = new MyVM();
         vm.execute(program);
     }
-}
+}*/
