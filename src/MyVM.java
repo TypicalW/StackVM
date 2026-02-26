@@ -35,10 +35,13 @@ public class MyVM {
     public static final int CALl = 51;
     public static final int RET = 52;
 
+    //Loop helper Insturctions
+    public static final int INC = 60;
+    public static final int DEC = 61;
+    public static final int LOOP = 62;
+
+
     /*Features to be added today are
-    *  loop DEC = 60
-    * loop INC = 61
-    * loop LOOP = 62
     * All bitwise operators from 70-74
     * using scanner to add INPUT 80
     * study and add DEBUG mode (idk how to, ill look into it)
@@ -246,6 +249,36 @@ public class MyVM {
                         throw  new RuntimeException("CallStack Underflow at RET");
                     int returnAddress = callstack.pop();
                     ip = returnAddress;
+                    break;
+
+                case INC:
+                    if(stack.isEmpty())
+                        throw new RuntimeException("Stack Underflow at INC");
+                    a = stack.pop();
+                    stack.push(++a);
+                    break;
+
+                case DEC:
+                    if(stack.isEmpty())
+                        throw new RuntimeException("Stack Underflow at DEC");
+                    a = stack.pop();
+                    stack.push(a-1);
+                    break;
+
+                case LOOP:
+                    target = program[ip++];
+                    if(stack.isEmpty())
+                        throw  new RuntimeException("Stack Underflow at LOOP");
+                    if (target < 0 || target >= program.length)
+                        throw new RuntimeException("Invalid jump target " + target);
+                    int counter = stack.pop();
+                    if (counter > 0) {
+                        counter--;
+                        stack.push(counter);
+                        ip = target;
+                    } else {
+                        stack.push(counter);
+                    }
                     break;
 
                 default:
