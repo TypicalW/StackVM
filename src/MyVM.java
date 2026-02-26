@@ -45,7 +45,7 @@ public class MyVM {
     public void execute(int[] program) {
         while (ip<program.length) {
             int instruction = program[ip++];
-            //
+            // switch cases 
             switch (instruction) {
                 case PUSH:
                     int value = program[ip];
