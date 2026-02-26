@@ -31,9 +31,23 @@ public class MyVM {
     public static final int GTE = 44;
     public static final int LTE = 45;
 
+    //Jump Callstack OPcodes
+    public static final int CALl = 51;
+    public static final int RET = 52;
+
+    /*Features to be added today are
+    *  loop DEC = 60
+    * loop INC = 61
+    * loop LOOP = 62
+    * All bitwise operators from 70-74
+    * using scanner to add INPUT 80
+    * study and add DEBUG mode (idk how to, ill look into it)
+    * */
+
 
     private final int[] memory = new int[256];
     private final Stack<Integer> stack; //stack as database for instructions;
+    private final Stack<Integer> callstack = new Stack<>(); // stack as database for return addresses(ip values)
     private int ip; //instruction pointer
 
     public MyVM() {
@@ -217,6 +231,21 @@ public class MyVM {
                     b = stack.pop();
                     a = stack.pop();
                     stack.push(a<=b?1:0);
+                    break;
+
+                case CALl:
+                    if(callstack.isEmpty())
+                        throw new RuntimeException("CallStack Underflow at CALL");
+                    target = program[ip++];
+                    callstack.push(ip);
+                    ip = target;
+                    break;
+
+                case RET:
+                    if(callstack.isEmpty())
+                        throw  new RuntimeException("CallStack Underflow at RET");
+                    int returnAddress = callstack.pop();
+                    ip = returnAddress;
                     break;
 
                 default:
