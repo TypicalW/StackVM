@@ -411,13 +411,75 @@ public class MyVM {
     /* test -- program -- biatch;*/
     public static void main(String[] args) {
         int[] program = {
-                //Add your OPCodes here for testing
-                PUSH ,5,
-                PUSH, 3,
-                ADD,
-                PRINT
+                //Uncomment these example programs to run
+                //factorial
+                /* // Main
+                PUSH, 4,        // 0
+                CALL, 10,       // 2
+                PRINT,          // 4
+                HALT,           // 5
+
+                // ---- fact(n) starts at index 10 ----
+                // Stack: [n]
+
+                // 10:
+                DUP,            // 10 copy n
+                PUSH, 1,        // 11
+                LTE,            // 13 check n <= 1
+                JZ, 18,         // 14 if not base case, jump
+
+                // Base case:
+                PUSH, 1,        // 16 return 1
+                RET,            // 18
+
+                // Recursive case:
+                // 18:
+                DUP,            // duplicate n
+                PUSH, 1,
+                SUB,            // n-1
+                CALL, 10,       // fact(n-1)
+                MUL,            // n * fact(n-1)
+                RET*/
+
+                //Loop Counter
+                /*PUSH, 5,        // 0
+                LOOP, 6,        // 2 jump back to print
+                HALT,           // 4
+
+                // 6:
+                DUP,            // duplicate counter
+                PRINT,          // print it
+                LOOP, 6         // decrement and loop*/
+
+
+                //BITWISE DEMO
+                /*// SHL
+                    PUSH, 8,
+                    PUSH, 2,
+                    SHL,
+                    PRINT,          // 32
+
+                    // SHR
+                    PUSH, -8,
+                    PUSH, 1,
+                    SHR,
+                    PRINT,          // -4
+
+                    // AND
+                    PUSH, 5,
+                    PUSH, 3,
+                    AND,
+                    PRINT,          // 1
+
+                    // XOR
+                    PUSH, 5,
+                    PUSH, 3,
+                    XOR,
+                    PRINT,          // 6
+
+                    HALT*/
         };
-        MyVM vm = new MyVM(true);
+        MyVM vm = new MyVM(true); //if you remove True debug mode is off;
         vm.execute(program);
     }
 }
