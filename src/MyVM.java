@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.Scanner;
 
 public class MyVM {
     //----OPCODES---
@@ -48,6 +49,9 @@ public class MyVM {
     public static final int SHR = 75; //Signed Right Shift >>
     public static final int USHR = 76; //Unsigned Right Shift >>>
 
+    //Input Opcode
+    public static final int INPUT = 80;
+
 
   /*
     * using scanner to add INPUT 80
@@ -58,6 +62,7 @@ public class MyVM {
     private final int[] memory = new int[256];
     private final Stack<Integer> stack; //stack as database for instructions;
     private final Stack<Integer> callstack = new Stack<>(); // stack as database for return addresses(ip values)
+    private final Scanner scanner = new Scanner(System.in);
     private int ip; //instruction pointer
 
     public MyVM() {
@@ -348,6 +353,14 @@ public class MyVM {
                     a = stack.pop();
 
                     stack.push(a>>>b);
+                    break;
+
+                case INPUT:
+                    if (!scanner.hasNextInt())
+                        throw new RuntimeException("Wrong Datatype Input at INPUT");
+
+                    int input = scanner.nextInt();
+                    stack.push(input);
                     break;
 
                 default:
