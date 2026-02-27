@@ -54,7 +54,6 @@ public class MyVM {
 
 
   /*
-    * using scanner to add INPUT 80
     * study and add DEBUG mode (idk how to, ill look into it)
     * */
 
@@ -72,6 +71,7 @@ public class MyVM {
     }
 
     public void execute(int[] program) {
+        ip=0;
         while (ip<program.length) {
             int instruction = program[ip++];
             // switch cases 
@@ -84,7 +84,7 @@ public class MyVM {
 
                 case ADD:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack underflow at ADD");
+                        VMError.stackUnderflow("ADD");
                     int b = stack.pop();
                     int a = stack.pop();
                     stack.push(a + b);
@@ -92,7 +92,7 @@ public class MyVM {
 
                 case SUB:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack underflow at SUB");
+                        VMError.stackUnderflow("SUB");
                     b = stack.pop();
                     a = stack.pop();
                     stack.push(a - b);
@@ -107,7 +107,7 @@ public class MyVM {
 
                 case MUL:
                     if (stack.size() < 2)
-                        throw new RuntimeException("Stack underflow on MUL");
+                        VMError.stackUnderflow("MUL");
 
                     b = stack.pop();
                     a = stack.pop();
@@ -115,24 +115,24 @@ public class MyVM {
                     break;
                 case DIV:
                     if (stack.size() < 2)
-                        throw new RuntimeException("Stack underflow on DIV");
+                        VMError.stackUnderflow("DIV");
                     b = stack.pop();
                     a = stack.pop();
 
                     if (b == 0)
-                        throw new RuntimeException("Division by Zero on DIV");
+                        VMError.divisionByZero("DIV");
                     stack.push(a / b);
                     break;
 
                 case DUP:
                     if (stack.isEmpty())
-                        throw new RuntimeException("Stack Underflow");
+                        VMError.stackUnderflow("DUP");
                     stack.push(stack.peek());
                     break;
 
                 case SWAP:
                     if (stack.size() < 2)
-                        throw new RuntimeException("Stack underflow on SWAP");
+                        VMError.stackUnderflow("SWAP");
                     b = stack.pop();
                     a = stack.pop();
                     stack.push(b);
@@ -141,17 +141,17 @@ public class MyVM {
 
                 case MOD:
                     if (stack.size() < 2)
-                        throw new RuntimeException("Stack underflow on MOD");
+                        VMError.stackUnderflow("MOD");
                     b = stack.pop();
                     if (b == 0)
-                        throw new RuntimeException("Division by Zero on MOD");
+                        VMError.divisionByZero("MOD");
                     a = stack.pop();
                     stack.push(a % b);
                     break;
 
                 case NEG:
                     if (stack.isEmpty())
-                        throw new RuntimeException("Stack underflow on NEG");
+                        VMError.stackUnderflow("NEG");
                     a = stack.pop();
                     stack.push(-a);
                     break;
@@ -159,58 +159,58 @@ public class MyVM {
                 case JMP:
                     int target = program[ip++];
                     if (target < 0 || target >= program.length)
-                        throw new RuntimeException("Invalid jump exception " + target);
+                        VMError.invalidJump(target);
                     ip = target;
                     break;
 
                 case JZ:
                     if (stack.isEmpty())
-                        throw new RuntimeException("Stack underflow on JZ");
+                        VMError.stackUnderflow("JZ");
                     target = program[ip++];
                     value = stack.pop();
                     if (value == 0) {
                         if (target < 0 || target >= program.length)
-                            throw new RuntimeException("Invalid Jump target " + target);
+                            VMError.invalidJump(target);
                         ip = target;
                     }
                     break;
 
                 case JNZ:
                     if (stack.isEmpty())
-                        throw new RuntimeException("Stack underflow on JNZ");
+                        VMError.stackUnderflow("JNZ");
                     target = program[ip++];
                     value = stack.pop();
                     if (value != 0) {
                         if (target < 0 || target >= program.length)
-                            throw new RuntimeException("Invalid Jump target " + target);
+                            VMError.invalidJump(target);
                         ip = target;
                     }
                     break;
 
                 case STORE:
                     if (stack.size() < 2)
-                        throw new RuntimeException("Stack Underflow at Store");
+                        VMError.stackUnderflow("STORE");
                     value = stack.pop();
                     int address = stack.pop();
 
                     if (address < 0 || address >= memory.length)
-                        throw new RuntimeException("Invalid memory address " + address);
+                        VMError.invalidMemory(address);
                     memory[address] = value;
                     break;
 
 
                 case LOAD:
                     if (stack.isEmpty())
-                        throw new RuntimeException("Stack underflow at LOAD");
+                        VMError.stackUnderflow("LOAD");
                     address = stack.pop();
                     if (address < 0 || address >= memory.length)
-                        throw new RuntimeException("Invalid memory address " + address);
+                        VMError.invalidMemory(address);
                     stack.push(memory[address]);
                     break;
 
                 case EQ:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack underflow at EQ");
+                        VMError.stackUnderflow("EQ");
                     b = stack.pop();
                     a = stack.pop();
                     stack.push(a==b?1:0);
@@ -218,7 +218,7 @@ public class MyVM {
 
                 case GT:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack Underflow at GT");
+                        VMError.stackUnderflow("GT");
                     b = stack.pop();
                     a = stack.pop();
                     stack.push(a>b?1:0);
@@ -226,7 +226,7 @@ public class MyVM {
 
                 case LT:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack Underflow at LT");
+                        VMError.stackUnderflow("LT");
                     b = stack.pop();
                     a = stack.pop();
                     stack.push(a<b?1:0);
@@ -234,7 +234,7 @@ public class MyVM {
 
                 case GTE:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack Underflow at GTE");
+                        VMError.stackUnderflow("GTE");
                     b = stack.pop();
                     a = stack.pop();
                     stack.push(a>=b?1:0);
@@ -242,15 +242,13 @@ public class MyVM {
 
                 case LTE:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack Underflow at LTE");
+                        VMError.stackUnderflow("LTE");
                     b = stack.pop();
                     a = stack.pop();
                     stack.push(a<=b?1:0);
                     break;
 
                 case CALl:
-                    if(callstack.isEmpty())
-                        throw new RuntimeException("CallStack Underflow at CALL");
                     target = program[ip++];
                     callstack.push(ip);
                     ip = target;
@@ -258,21 +256,21 @@ public class MyVM {
 
                 case RET:
                     if(callstack.isEmpty())
-                        throw  new RuntimeException("CallStack Underflow at RET");
+                        VMError.callStackUnderflow("RET");
                     int returnAddress = callstack.pop();
                     ip = returnAddress;
                     break;
 
                 case INC:
                     if(stack.isEmpty())
-                        throw new RuntimeException("Stack Underflow at INC");
+                        VMError.stackUnderflow("INC");
                     a = stack.pop();
                     stack.push(++a);
                     break;
 
                 case DEC:
                     if(stack.isEmpty())
-                        throw new RuntimeException("Stack Underflow at DEC");
+                        VMError.stackUnderflow("DEC");
                     a = stack.pop();
                     stack.push(a-1);
                     break;
@@ -280,9 +278,9 @@ public class MyVM {
                 case LOOP:
                     target = program[ip++];
                     if(stack.isEmpty())
-                        throw  new RuntimeException("Stack Underflow at LOOP");
+                        VMError.stackUnderflow("LOOP");
                     if (target < 0 || target >= program.length)
-                        throw new RuntimeException("Invalid jump target " + target);
+                        VMError.invalidJump(target);
                     int counter = stack.pop();
                     if (counter > 0) {
                         counter--;
@@ -295,7 +293,7 @@ public class MyVM {
 
                 case AND:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack Underflow at AND");
+                        VMError.stackUnderflow("AND");
                     b = stack.pop();
                     a = stack.pop();
 
@@ -304,7 +302,7 @@ public class MyVM {
 
                 case OR:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack Underflow at OR");
+                        VMError.stackUnderflow("OR");
                     b = stack.pop();
                     a = stack.pop();
 
@@ -313,7 +311,7 @@ public class MyVM {
 
                 case XOR:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack Underflow at XOR");
+                        VMError.stackUnderflow("XOR");
                     b = stack.pop();
                     a = stack.pop();
 
@@ -322,7 +320,7 @@ public class MyVM {
 
                 case NOT:
                     if(stack.isEmpty())
-                        throw new RuntimeException("Stack Underflow at NOT");
+                        VMError.stackUnderflow("NOT");
                     a = stack.pop();
 
                     stack.push(~a);
@@ -330,7 +328,7 @@ public class MyVM {
 
                 case SHL:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack Underflow at SHL");
+                        VMError.stackUnderflow("SHL");
                     b = stack.pop();
                     a = stack.pop();
 
@@ -339,7 +337,7 @@ public class MyVM {
 
                 case SHR:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack Underflow at SHR");
+                        VMError.stackUnderflow("SHR");
                     b = stack.pop();
                     a = stack.pop();
 
@@ -348,7 +346,7 @@ public class MyVM {
 
                 case USHR:
                     if(stack.size()<2)
-                        throw new RuntimeException("Stack Underflow at USHR");
+                        VMError.stackUnderflow("USHR");
                     b = stack.pop();
                     a = stack.pop();
 
@@ -357,14 +355,14 @@ public class MyVM {
 
                 case INPUT:
                     if (!scanner.hasNextInt())
-                        throw new RuntimeException("Wrong Datatype Input at INPUT");
+                        VMError.invalidInput("INPUT");
 
                     int input = scanner.nextInt();
                     stack.push(input);
                     break;
 
                 default:
-                    throw new RuntimeException("Unknown Instruction " + instruction);
+                    VMError.unknownInstruction(instruction);
             }
         }
     }
