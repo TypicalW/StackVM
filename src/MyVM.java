@@ -33,7 +33,7 @@ public class MyVM {
     public static final int LTE = 45;
 
     //Jump Callstack OPcodes
-    public static final int CALl = 51;
+    public static final int CALL = 51;
     public static final int RET = 52;
 
     //Loop helper Instructions
@@ -63,6 +63,37 @@ public class MyVM {
     private final Stack<Integer> callstack = new Stack<>(); // stack as database for return addresses(ip values)
     private final Scanner scanner = new Scanner(System.in);
     private int ip; //instruction pointer
+    private boolean debug = false;
+    private int step = 0;
+    private String opcodeName(int opcode) {
+        switch (opcode) {
+            case PUSH: return "PUSH";
+            case ADD: return "ADD";
+            case SUB: return "SUB";
+            case PRINT: return "PRINT";
+            case MUL: return "MUL";
+            case DIV: return "DIV";
+            case CALL: return "CALL";
+            case RET: return "RET";
+            case LOOP: return "LOOP";
+            case AND: return "AND";
+            case OR: return "OR";
+            case XOR: return "XOR";
+            case NOT: return "NOT";
+            case SHL: return "SHL";
+            case SHR: return "SHR";
+            case USHR: return "USHR";
+            case INPUT: return "INPUT";
+            default: return "UNKNOWN";
+        }
+    }
+
+
+    public MyVM(boolean debug) {
+        this.debug = debug;
+        stack = new Stack<>();
+        ip = 0;
+    }
 
     public MyVM() {
         stack = new Stack<>();
@@ -74,6 +105,15 @@ public class MyVM {
         ip=0;
         while (ip<program.length) {
             int instruction = program[ip++];
+            if (debug) {
+                System.out.println(
+                        "STEP=" + step++ +
+                                " | IP=" + (ip - 1) +
+                                " | INSTR=" + opcodeName(instruction) +
+                                " | STACK=" + stack +
+                                " | CALLSTACK=" + callstack
+                );
+            }
             // switch cases 
             switch (instruction) {
                 case PUSH:
@@ -248,7 +288,7 @@ public class MyVM {
                     stack.push(a<=b?1:0);
                     break;
 
-                case CALl:
+                case CALL:
                     target = program[ip++];
                     callstack.push(ip);
                     ip = target;
@@ -372,8 +412,12 @@ public class MyVM {
     public static void main(String[] args) {
         int[] program = {
                 //Add your OPCodes here for testing
+                PUSH ,5,
+                PUSH, 3,
+                ADD,
+                PRINT
         };
-        MyVM vm = new MyVM();
+        MyVM vm = new MyVM(true);
         vm.execute(program);
     }
 }
