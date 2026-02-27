@@ -1,34 +1,234 @@
-# Stack-Based Virtual Machine in Java
+# Stack-Based Bytecode Virtual Machine (Java)
 
 ## Overview
 
-This project implements a custom stack-based bytecode virtual machine (VM) in Java.
-The VM interprets integer-encoded instructions using a fetch–decode–execute cycle and simulates core CPU architecture concepts including:
+This project implements a custom **stack-based bytecode virtual machine (VM)** in Java.
 
-* Instruction Pointer (Program Counter)
-* Operand Stack
-* Memory (RAM)
-* Arithmetic and Logical Operations
-* Conditional and Unconditional Branching
-* Runtime Safety Checks
+The VM executes integer-based bytecode instructions using:
 
-The design models the behavior of low-level stack machines and demonstrates how interpreters and execution engines operate internally.
+* A data stack
+* A call stack
+* A fixed-size memory model
+* An instruction pointer
+* A structured opcode system
+* Custom runtime error handling
+* Optional debug tracing mode
+
+The architecture simulates core concepts found in real execution engines and low-level virtual machines.
 
 ---
 
 ## Architecture
 
-### Execution Model
+### Core Components
 
-The VM follows a classical fetch–decode–execute loop:
+#### 1. Instruction Pointer (IP)
 
-1. Fetch instruction at current instruction pointer (IP)
-2. Increment IP
-3. Decode instruction
-4. Execute operation
-5. Repeat until HALT or program termination
+The `ip` (instruction pointer) tracks the current position in the program array.
 
-```java
+* Incremented when reading instructions
+* Modified explicitly by control flow operations (`JMP`, `CALL`, `RET`, `LOOP`)
+* Reset to `0` at the start of each execution
+
+---
+
+#### 2. Data Stack
+
+A `Stack<Integer>` used for:
+
+* Arithmetic operations
+* Logical operations
+* Comparisons
+* Loop counters
+* Input handling
+
+All ALU-style instructions operate on the top of this stack.
+
+---
+
+#### 3. Call Stack
+
+A separate `Stack<Integer>` used only for return addresses.
+
+* `CALL` pushes the return address
+* `RET` pops and restores the instruction pointer
+* Isolated from the data stack to prevent corruption
+
+This separation mirrors real CPU behavior.
+
+---
+
+#### 4. Memory Model
+
+A fixed-size integer array:
+
+```
+private final int[] memory = new int[256];
+```
+
+Used via:
+
+* `STORE`
+* `LOAD`
+
+Includes bounds validation through centralized error handling.
+
+---
+
+#### 5. Custom Error System (VMError)
+
+All runtime errors are centralized in `VMError.java`.
+
+This includes:
+
+* Stack underflow
+* Call stack underflow
+* Division by zero
+* Invalid jump targets
+* Invalid memory access
+* Unknown instructions
+* Invalid input
+
+Errors throw a custom runtime exception:
+
+```
+VMError.VMRuntimeException
+```
+
+This provides:
+
+* Clean separation of VM logic and error handling
+* Consistent error messages
+* Extensibility for future improvements
+
+---
+
+## Instruction Set
+
+### Arithmetic
+
+| Opcode | Description    |
+| ------ | -------------- |
+| ADD    | a + b          |
+| SUB    | a - b          |
+| MUL    | a * b          |
+| DIV    | a / b          |
+| MOD    | a % b          |
+| NEG    | unary negation |
+
+---
+
+### Stack Manipulation
+
+| Opcode | Description          |
+| ------ | -------------------- |
+| PUSH   | Push immediate value |
+| DUP    | Duplicate top value  |
+| SWAP   | Swap top two values  |
+| INC    | Increment top value  |
+| DEC    | Decrement top value  |
+
+---
+
+### Comparison
+
+| Opcode | Description           |
+| ------ | --------------------- |
+| EQ     | Equal                 |
+| GT     | Greater than          |
+| LT     | Less than             |
+| GTE    | Greater than or equal |
+| LTE    | Less than or equal    |
+
+All comparisons push `1` (true) or `0` (false).
+
+---
+
+### Bitwise Operations
+
+| Opcode | Description |
+| ------ | ----------- |
+| AND    | a & b       |
+| OR     | a | b       |
+| XOR    | a ^ b       |
+| NOT    | ~a          |
+| SHL    | a << b      |
+| SHR    | a >> b      |
+| USHR   | a >>> b     |
+
+Shifts follow Java `int` semantics (32-bit signed integers).
+
+---
+
+### Control Flow
+
+| Opcode | Description                       |
+| ------ | --------------------------------- |
+| JMP    | Unconditional jump                |
+| JZ     | Jump if zero                      |
+| JNZ    | Jump if non-zero                  |
+| CALL   | Function call                     |
+| RET    | Return from function              |
+| LOOP   | Decrement counter and jump if > 0 |
+
+`CALL` and `RET` use a dedicated call stack.
+
+---
+
+### Memory Operations
+
+| Opcode | Description            |
+| ------ | ---------------------- |
+| STORE  | Store value in memory  |
+| LOAD   | Load value from memory |
+
+All memory accesses are bounds-checked.
+
+---
+
+### Input
+
+| Opcode | Description                       |
+| ------ | --------------------------------- |
+| INPUT  | Reads integer from standard input |
+
+Input is validated using `Scanner.hasNextInt()`.
+
+---
+
+## Debug Mode
+
+The VM includes an optional debug mode.
+
+Enable via:
+
+```
+MyVM vm = new MyVM(true);
+```
+
+When enabled, the VM prints execution trace before each instruction:
+
+```
+IP=0 | INSTR=PUSH | STACK=[] | CALLSTACK=[]
+```
+
+This allows:
+
+* Step-by-step state inspection
+* Verification of CALL/RET behavior
+* Loop tracing
+* Stack evolution debugging
+* Detection of infinite loops
+
+Debug mode is observational only and does not modify execution state.
+
+---
+
+## Execution Model
+
+Execution follows this pattern:
+
+```
 while (ip < program.length) {
     int instruction = program[ip++];
     switch (instruction) {
@@ -37,266 +237,72 @@ while (ip < program.length) {
 }
 ```
 
-The instruction pointer is explicitly modified during control flow operations (JMP, JZ, JNZ), enabling branching and looping.
+Control flow instructions modify `ip` directly.
+
+`CALL` pushes the next instruction address before jumping.
+
+`RET` restores the instruction pointer from the call stack.
 
 ---
 
-## Core Components
+## Example Program
 
-### 1. Operand Stack
-
-* Implemented using `Stack<Integer>`
-* Used for all arithmetic, logical, and conditional operations
-* Follows LIFO semantics
-* Enforces runtime safety (stack underflow checks)
-
-### 2. Memory (RAM)
-
-* Fixed size: 256 integer cells
-* Indexed addressing
-* Accessed exclusively via STORE and LOAD instructions
-* Bounds-checked to prevent invalid memory access
-
-```java
-private final int[] memory = new int[256];
 ```
-
-### 3. Instruction Pointer (IP)
-
-* Tracks current execution position
-* Automatically increments after each fetch
-* Explicitly reassigned during jump instructions
-
----
-
-## Instruction Set
-
-The VM supports multiple instruction categories.
-
----
-
-### Core Instructions
-
-| Opcode | Instruction | Description                     |
-| ------ | ----------- | ------------------------------- |
-| 0      | HALT        | Terminates execution            |
-| 1      | PUSH        | Push immediate value onto stack |
-| 4      | PRINT       | Pop and print top stack value   |
-
----
-
-### Arithmetic Instructions
-
-| Opcode | Instruction | Behavior                               |
-| ------ | ----------- | -------------------------------------- |
-| 2      | ADD         | Push (a + b)                           |
-| 3      | SUB         | Push (a - b)                           |
-| 5      | MUL         | Push (a * b)                           |
-| 6      | DIV         | Push (a / b), division-by-zero checked |
-| 9      | MOD         | Push (a % b), division-by-zero checked |
-| 10     | NEG         | Push (-a)                              |
-
-All arithmetic operations:
-
-* Require minimum stack size of 2 (except NEG)
-* Consume operands
-* Push result back to stack
-
----
-
-### Stack Manipulation
-
-| Opcode | Instruction | Description               |
-| ------ | ----------- | ------------------------- |
-| 7      | DUP         | Duplicate top stack value |
-| 8      | SWAP        | Swap top two stack values |
-
----
-
-### Comparison Instructions
-
-All comparisons push:
-
-* 1 for true
-* 0 for false
-
-| Opcode | Instruction | Behavior      |
-| ------ | ----------- | ------------- |
-| 41     | EQ          | Push (a == b) |
-| 42     | GT          | Push (a > b)  |
-| 43     | LT          | Push (a < b)  |
-| 44     | GTE         | Push (a >= b) |
-| 45     | LTE         | Push (a <= b) |
-
-These integrate directly with conditional branching.
-
----
-
-### Control Flow Instructions
-
-| Opcode | Instruction | Description            |
-| ------ | ----------- | ---------------------- |
-| 20     | JMP         | Unconditional jump     |
-| 21     | JZ          | Jump if top value == 0 |
-| 22     | JNZ         | Jump if top value != 0 |
-
-Behavior:
-
-* Jump target is read from program array
-* Bounds-checked before assignment
-* JZ and JNZ consume the condition value from stack
-
-Branching is implemented by directly modifying the instruction pointer.
-
----
-
-### Memory Instructions
-
-| Opcode | Instruction | Description             |
-| ------ | ----------- | ----------------------- |
-| 31     | STORE       | memory[address] = value |
-| 32     | LOAD        | Push memory[address]    |
-
-STORE pops:
-
-* value
-* address
-
-LOAD pops:
-
-* address
-
-Both validate memory bounds.
-
----
-
-## Example Programs
-
-### Example 1: Arithmetic
-
-```java
 int[] program = {
-    PUSH, 10,
+    PUSH, 5,
     PUSH, 3,
-    MOD,
-    PRINT,
-    HALT
+    ADD,
+    PRINT
 };
 ```
 
 Output:
 
 ```
-1
+8
 ```
 
 ---
 
-### Example 2: Conditional Branching
+## Design Principles
 
-```java
-int[] program = {
-    PUSH, 8,
-    PUSH, 2,
-    LTE,
-    JZ, 10,
-    PUSH, 999,
-    PRINT,
-    HALT
-};
-```
-
-Demonstrates:
-
-* Comparison
-* Conditional branching
-* Instruction pointer modification
-
----
-
-### Example 3: Memory Usage
-
-```java
-int[] program = {
-    PUSH, 5,
-    PUSH, 42,
-    STORE,
-
-    PUSH, 5,
-    LOAD,
-    PRINT,
-    HALT
-};
-```
-
-Output:
-
-```
-42
-```
-
----
-
-## Error Handling
-
-The VM enforces runtime safety through:
-
-* Stack underflow checks
-* Division by zero checks
-* Invalid jump target detection
-* Memory bounds validation
-* Unknown opcode detection
-
-All violations throw RuntimeException.
-
----
-
-## Design Characteristics
-
-* Deterministic execution model
+* Stack-based architecture
 * Explicit instruction pointer control
-* Stack-based evaluation model
-* Integer-only architecture
-* No implicit side effects
-* Clear instruction categorization
-
-The design mirrors classical stack-based virtual machines and demonstrates how interpreters manage execution state.
+* Separated call stack and data stack
+* Centralized error management
+* Deterministic execution
+* Clear opcode organization
+* Extensible instruction system
 
 ---
 
 ## Potential Extensions
 
-* Text-based assembler (convert assembly to bytecode)
-* File-based program loading
-* Step-by-step debug mode
-* Register-based VM variation
-* Call/Return instruction support
-* Trace logging mode
+* Assembler layer (text-to-bytecode compiler)
+* Recursive function demonstrations
+* Memory heap model
+* Bytecode file loader
+* Optimized stack implementation
+* Custom instruction categories
 
 ---
 
-## How to Run
+## Educational Value
 
-1. Add instructions inside the `program` array in `main`.
-2. Compile and run:
-
-```
-javac MyVM.java
-java MyVM
-```
-
----
-
-## Purpose
-
-This project explores:
+This project demonstrates understanding of:
 
 * Virtual machine design
-* Interpreter architecture
 * Instruction decoding
-* Stack-based computation models
-* Low-level control flow mechanisms
-
-It serves as a foundational systems programming exercise and a demonstration of execution engine construction in Java.
+* Stack-based execution models
+* Control flow mechanics
+* Function call semantics
+* Bitwise arithmetic
+* Runtime error abstraction
+* Execution tracing
 
 ---
+
+## Conclusion
+
+This virtual machine simulates core execution engine principles in a simplified, controlled environment. It provides a strong foundation for understanding interpreters, compilers, and low-level runtime systems.
+
