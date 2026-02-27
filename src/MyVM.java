@@ -35,14 +35,21 @@ public class MyVM {
     public static final int CALl = 51;
     public static final int RET = 52;
 
-    //Loop helper Insturctions
+    //Loop helper Instructions
     public static final int INC = 60;
     public static final int DEC = 61;
     public static final int LOOP = 62;
 
+    public static final int AND = 70;
+    public static final int OR = 71;
+    public static final int XOR = 72;
+    public static final int NOT = 73;
+    public static final int SHL = 74; //Left Shift <<
+    public static final int SHR = 75; //Signed Right Shift >>
+    public static final int USHR = 76; //Unsigned Right Shift >>>
 
-    /*Features to be added today are
-    * All bitwise operators from 70-74
+
+  /*
     * using scanner to add INPUT 80
     * study and add DEBUG mode (idk how to, ill look into it)
     * */
@@ -279,6 +286,68 @@ public class MyVM {
                     } else {
                         stack.push(counter);
                     }
+                    break;
+
+                case AND:
+                    if(stack.size()<2)
+                        throw new RuntimeException("Stack Underflow at AND");
+                    b = stack.pop();
+                    a = stack.pop();
+
+                    stack.push(a&b);
+                    break;
+
+                case OR:
+                    if(stack.size()<2)
+                        throw new RuntimeException("Stack Underflow at OR");
+                    b = stack.pop();
+                    a = stack.pop();
+
+                    stack.push(a|b);
+                    break;
+
+                case XOR:
+                    if(stack.size()<2)
+                        throw new RuntimeException("Stack Underflow at XOR");
+                    b = stack.pop();
+                    a = stack.pop();
+
+                    stack.push(a^b);
+                    break;
+
+                case NOT:
+                    if(stack.isEmpty())
+                        throw new RuntimeException("Stack Underflow at NOT");
+                    a = stack.pop();
+
+                    stack.push(~a);
+                    break;
+
+                case SHL:
+                    if(stack.size()<2)
+                        throw new RuntimeException("Stack Underflow at SHL");
+                    b = stack.pop();
+                    a = stack.pop();
+
+                    stack.push(a<<b);
+                    break;
+
+                case SHR:
+                    if(stack.size()<2)
+                        throw new RuntimeException("Stack Underflow at SHR");
+                    b = stack.pop();
+                    a = stack.pop();
+
+                    stack.push(a>>b);
+                    break;
+
+                case USHR:
+                    if(stack.size()<2)
+                        throw new RuntimeException("Stack Underflow at USHR");
+                    b = stack.pop();
+                    a = stack.pop();
+
+                    stack.push(a>>>b);
                     break;
 
                 default:
